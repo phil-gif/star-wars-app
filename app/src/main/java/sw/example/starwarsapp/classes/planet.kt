@@ -1,5 +1,7 @@
 package sw.example.starwarsapp.classes
 
+import java.io.Serializable
+
 data class Planet(
     val name: String,
     val rotation_period: String,
@@ -15,4 +17,4 @@ data class Planet(
     val created: String,
     val edited: String,
     val url: String
-)
+): Serializable

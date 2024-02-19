@@ -1,9 +1,10 @@
 package sw.example.starwarsapp
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,27 +15,29 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat.startActivity
 import sw.example.starwarsapp.classes.Person
 import sw.example.starwarsapp.classes.Planet
 import sw.example.starwarsapp.classes.Starship
+import sw.example.starwarsapp.navigation.StarWarsHeader
 import sw.example.starwarsapp.services.CacheManager
 import sw.example.starwarsapp.ui.theme.StarWarsAppTheme
 import sw.example.starwarsapp.services.StarWarsAPIService
+import sw.example.starwarsapp.subpages.DetailsActivity
+import java.io.Serializable
 
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             StarWarsAppTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = Color.Black) {
                     val starWarsAPIService = StarWarsAPIService()
-                    var items = remember { mutableStateListOf<Any>() }
+                    val items = remember { mutableStateListOf<Any>() }
 
                     MainScreen(starWarsAPIService, items)
                 }
@@ -46,7 +49,10 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen(starWarsAPIService: StarWarsAPIService, items: SnapshotStateList<Any>) {
     Column {
-        StarWarsHeader()
+        StarWarsHeader(
+            showBackButton = false,
+            onBackClicked  = { (this as? Activity)?.finish() }
+        )
         Divider(color = Color.White, thickness = 1.dp)
         SelectionButtons(starWarsAPIService, items)
         ItemsSlider(items)
@@ -65,7 +71,6 @@ fun SelectionButtons(starWarsAPIService: StarWarsAPIService, items: SnapshotStat
     ) {
         Button(
             onClick = {
-                // Überprüfe zuerst, ob die Daten im Cache vorhanden sind
                 val cachedPeople = CacheManager.get("people")
                 if (cachedPeople != null) {
                     items.clear()
@@ -151,6 +156,7 @@ fun SelectionButtons(starWarsAPIService: StarWarsAPIService, items: SnapshotStat
 
 @Composable
 fun ItemsSlider(items: List<Any>) {
+    val context = LocalContext.current
     LazyRow(modifier = Modifier.padding(8.dp)) {
         items(items.size) { index ->
             val item = items[index]
@@ -158,13 +164,13 @@ fun ItemsSlider(items: List<Any>) {
                 modifier = Modifier
                     .padding(horizontal = 8.dp, vertical = 4.dp)
                     .width(200.dp),
-                shape = RoundedCornerShape(8.dp), // Abgerundete Ecken
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp), // Subtiler Schatten
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF333333)) // Dunkelgrau, passend zum Star-Wars-Thema
+                shape = RoundedCornerShape(8.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF333333))
             ) {
                 Column(
                     modifier = Modifier
-                        .padding(8.dp) // Schwarzer Hintergrund für den Inhalt
+                        .padding(8.dp)
                 ) {
                     when (item) {
                         is Person -> {
@@ -187,6 +193,10 @@ fun ItemsSlider(items: List<Any>) {
                     }
                     Button(
                         onClick = {
+                            val intent = Intent(context, DetailsActivity::class.java)
+                            intent.putExtra("item",item as Serializable)
+                            context.startActivity(intent)
+
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                         shape = RoundedCornerShape(5.dp)
@@ -205,7 +215,7 @@ fun ItemTitle(text: String) {
         text = text,
         style = MaterialTheme.typography.titleMedium.copy(
             color = Color.Yellow,
-            fontSize = 20.sp // Setze die Schriftgröße auf 20sp
+            fontSize = 20.sp
         ),
         modifier = Modifier.padding(bottom = 4.dp)
     )
@@ -229,15 +239,4 @@ fun ItemAttribute(label: String, value: String) {
 }
 
 
-@Composable
-fun StarWarsHeader(modifier: Modifier = Modifier) {
-    // Adjust the size of the Image here. Replace "R.drawable.star_wars_symbol" with your actual drawable resource name.
-    Image(
-        painter = painterResource(id = R.drawable.starwars),
-        contentDescription = "Star Wars Symbol",
-        modifier = modifier
-            .fillMaxWidth() // Image will fill the width of its container
-            .height(60.dp), // Limiting the height of the Image
-        contentScale = ContentScale.Fit // Adjust the scaling to fit within the specified dimensions
-    )
-}
+

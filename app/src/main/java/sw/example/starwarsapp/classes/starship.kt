@@ -1,5 +1,7 @@
 package sw.example.starwarsapp.classes
 
+import java.io.Serializable
+
 data class Starship(
     val name: String,
     val model: String,
@@ -17,4 +19,4 @@ data class Starship(
     val created: String,
     val edited: String,
     val url: String
-)
+): Serializable

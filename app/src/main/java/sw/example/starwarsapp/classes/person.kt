@@ -1,6 +1,8 @@
 package sw.example.starwarsapp.classes
 
-data class Person(
+import java.io.Serializable
+
+data class Person (
     val name: String,
     val height: String,
     val mass: String,
@@ -17,4 +19,4 @@ data class Person(
     val created: String,
     val edited: String,
     val url: String
-)
+): Serializable
